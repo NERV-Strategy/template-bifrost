@@ -1,0 +1,212 @@
+{
+  "$schema": "https://www.getbifrost.ai/schema",
+  "encryption_key": "env.BIFROST_ENCRYPTION_KEY",
+  "client": {
+    "drop_excess_requests": false,
+    "mcp_disable_auto_tool_inject": true,
+    "enforce_auth_on_inference": true,
+    "enable_logging": true
+  },
+  "config_store": {
+    "enabled": true,
+    "type": "postgres",
+    "config": {
+      "host": "env.DATABASE_HOST",
+      "port": "5432",
+      "user": "env.DATABASE_USER",
+      "password": "env.DATABASE_PASS",
+      "db_name": "env.DATABASE_NAME",
+      "ssl_mode": "disable"
+    }
+  },
+  "logs_store": {
+    "enabled": true,
+    "type": "postgres",
+    "config": {
+      "host": "env.DATABASE_HOST",
+      "port": "5432",
+      "user": "env.DATABASE_USER",
+      "password": "env.DATABASE_PASS",
+      "db_name": "env.DATABASE_NAME",
+      "ssl_mode": "disable"
+    }
+  },
+  "mcp": {
+    "client_configs": [
+      {
+        "name": "gateway",
+        "connection_type": "http",
+        "connection_string": "http://gateway:8811/mcp",
+        "auth_type": "headers",
+        "headers": {
+          "Authorization": "env.DOCKER_MCP_GATEWAY_AUTH_TOKEN"
+        },
+        "is_code_mode_client": true,
+        "tools_to_execute": [
+          "mcp-find",
+          "mcp-exec"
+        ]
+      },
+      {
+        "name": "context7",
+        "connection_type": "http",
+        "connection_string": "https://mcp.context7.com/mcp",
+        "auth_type": "headers",
+        "headers": {
+          "Authorization": "env.CONTEXT7_API_KEY"
+        },
+        "is_code_mode_client": true,
+        "tools_to_execute": ["*"]
+      },
+      {
+        "name": "exa",
+        "connection_type": "http",
+        "connection_string": "https://mcp.exa.ai/mcp?tools=web_search_exa,web_fetch_exa,web_search_advanced_exa",
+        "auth_type": "headers",
+        "headers": {
+          "x-api-key": "env.EXA_API_KEY"
+        },
+        "is_code_mode_client": true,
+        "tools_to_execute": ["*"]
+      },
+      {
+        "name": "composio",
+        "connection_type": "http",
+        "connection_string": "https://connect.composio.dev/mcp",
+        "auth_type": "headers",
+        "headers": {
+          "x-consumer-api-key": "env.COMPOSIO_CONSUMER_API_KEY"
+        },
+        "is_code_mode_client": false,
+        "tools_to_execute": [
+          "COMPOSIO_GET_TOOL_SCHEMAS",
+          "COMPOSIO_MULTI_EXECUTE_TOOL",
+          "COMPOSIO_REMOTE_BASH_TOOL",
+          "COMPOSIO_REMOTE_WORKBENCH",
+          "COMPOSIO_SEARCH_TOOLS",
+          "COMPOSIO_WAIT_FOR_CONNECTIONS"
+        ]
+      },
+      {
+        "name": "phpstorm",
+        "connection_type": "http",
+        "connection_string": "http://host-proxy/stream",
+        "auth_type": "headers",
+        "headers": {
+          "x-target-port": "64342"
+        },
+        "allowed_extra_headers": ["IJ_MCP_SERVER_PROJECT_PATH"],
+        "is_code_mode_client": true,
+        "tools_to_execute": ["*"]
+      },
+      {
+        "name": "pycharm",
+        "connection_type": "http",
+        "connection_string": "http://host-proxy/stream",
+        "auth_type": "headers",
+        "headers": {
+          "x-target-port": "64344"
+        },
+        "allowed_extra_headers": ["IJ_MCP_SERVER_PROJECT_PATH"],
+        "is_code_mode_client": true,
+        "tools_to_execute": ["*"]
+      }
+    ]
+  },
+  "providers": {
+    "openrouter": {
+      "keys": [
+        {
+          "name": "openrouter-default",
+          "value": "env.OPENROUTER_DEFAULT_API_KEY",
+          "models": ["*"],
+          "weight": 1.0
+        }
+      ]
+    },
+    "gemini": {
+      "keys": [
+        {
+          "name": "gemini-default",
+          "value": "env.GEMINI_DEFAULT_API_KEY",
+          "models": ["*"],
+          "weight": 1.0
+        }
+      ]
+    }
+  },
+  "governance": {
+    "virtual_keys": [
+      {
+        "id": "opencode-bifrost",
+        "name": "opencode-bifrost",
+        "value": "env.BIFROST_OPENCODE_KEY",
+        "is_active": true,
+        "provider_configs": [
+          {
+            "provider": "gemini-default",
+            "allowed_models": ["*"],
+            "key_ids": ["*"],
+            "weight": 1
+          },
+          {
+            "provider": "openrouter-default",
+            "allowed_models": ["*"],
+            "key_ids": ["*"],
+            "weight": 1
+          }
+        ],
+        "mcp_configs": [
+          {
+            "mcp_client_name": "gateway",
+            "tools_to_execute": ["*"]
+          },
+          {
+            "mcp_client_name": "context7",
+            "tools_to_execute": ["*"]
+          },
+          {
+            "mcp_client_name": "exa",
+            "tools_to_execute": ["*"]
+          },
+          {
+            "mcp_client_name": "pycharm",
+            "tools_to_execute": ["*"]
+          },
+          {
+            "mcp_client_name": "phpstorm",
+            "tools_to_execute": ["*"]
+          }
+        ]
+      },
+      {
+        "id": "opencode-bifrost-jetbrains",
+        "name": "opencode-bifrost-jetbrains",
+        "value": "env.BIFROST_OPENCODE_JETBRAINS_MCP_KEY",
+        "is_active": true,
+        "mcp_configs": [
+          {
+            "mcp_client_name": "pycharm",
+            "tools_to_execute": ["*"]
+          },
+          {
+            "mcp_client_name": "phpstorm",
+            "tools_to_execute": ["*"]
+          }
+        ]
+      },
+      {
+        "id": "junie-mcp",
+        "name": "junie-mcp",
+        "value": "env.BIFROST_JUNIE_MCP_KEY",
+        "is_active": true,
+        "mcp_configs": [
+          {
+            "mcp_client_name": "context7",
+            "tools_to_execute": ["*"]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,112 @@
+name: nerv-bifrost
+
+configs:
+  mcp_configs:
+    file: ./config/gateway-mcp.yaml
+
+secrets:
+  mcp_secrets:
+    file: ./.gateway.env
+
+services:
+  bifrost:
+    image: maximhq/bifrost:latest
+    expose:
+      - "8080"
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_HOST: "db"
+      DATABASE_USER: "bifrost"
+      DATABASE_PASS: "bifrost_pass"
+      DATABASE_NAME: "bifrost"
+      LOG_STYLE: pretty
+      LOG_LEVEL:
+      DOCKER_MCP_GATEWAY_AUTH_TOKEN: "Bearer p1ujg4hjgf9pww99fjyqta0zln8dl57682iyenypkkpgwp38f6"
+    env_file:
+      - .bifrost.env
+    volumes:
+      - ./config/bifrost.json:/app/data/config.json:ro
+    networks:
+      - bifrost-internal
+      - bifrost-docker-internal
+      - bifrost-global
+    depends_on:
+      db:
+        condition: service_healthy
+      gateway:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: "2.0"
+    restart: unless-stopped
+
+  gateway:
+    # https://github.com/docker/mcp-gateway/blob/main/examples/config/compose.yaml
+    # https://docs.docker.com/reference/cli/docker/mcp/gateway/run/
+    image: docker/mcp-gateway
+    ports:
+      - "8811:8811"
+    secrets:
+      - mcp_secrets
+    configs:
+      - mcp_configs
+    environment:
+      MCP_GATEWAY_AUTH_TOKEN: p1ujg4hjgf9pww99fjyqta0zln8dl57682iyenypkkpgwp38f6
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - bifrost-docker-internal
+    command:
+      - --transport=streaming
+      - --secrets=/run/secrets/mcp_secrets
+      - --config=/mcp_configs
+      # - --servers=duckduckgo
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: "2.0"
+    healthcheck:
+      test: wget -O- http://localhost:8811/health
+      interval: 5s
+      timeout: 2s
+      retries: 60
+      start_period: 2s
+    restart: unless-stopped
+
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: bifrost
+      POSTGRES_USER: bifrost
+      POSTGRES_PASSWORD: bifrost_pass
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=en_US.UTF-8 --lc-ctype=en_US.UTF-8"
+    volumes:
+      - ./var/pgdata:/var/lib/postgresql:rw
+    networks:
+      - bifrost-internal
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: "2.0"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d bifrost -U bifrost"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+networks:
+  bifrost-global:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: "bifrost-bridge"
+  bifrost-internal:
+    driver: bridge
+  bifrost-docker-internal:
+    driver: bridge
+

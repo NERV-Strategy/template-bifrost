@@ -1,0 +1,14 @@
+
+services:
+  host-proxy:
+    image: nginx:latest
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - bifrost-global
+    volumes:
+      - ./config/host-proxy.conf:/etc/nginx/nginx.conf:ro
+
+networks:
+  bifrost-global:
+    external: true

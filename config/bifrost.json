@@ -1,0 +1,52 @@
+{
+  "$schema": "https://www.getbifrost.ai/schema",
+  "encryption_key": "env.BIFROST_ENCRYPTION_KEY",
+  "client": {
+    "drop_excess_requests": false,
+    "mcp_disable_auto_tool_inject": true,
+    "enforce_auth_on_inference": true,
+    "enable_logging": true
+  },
+  "config_store": {
+    "enabled": true,
+    "type": "postgres",
+    "config": {
+      "host": "env.DATABASE_HOST",
+      "port": "5432",
+      "user": "env.DATABASE_USER",
+      "password": "env.DATABASE_PASS",
+      "db_name": "env.DATABASE_NAME",
+      "ssl_mode": "disable"
+    }
+  },
+  "logs_store": {
+    "enabled": true,
+    "type": "postgres",
+    "config": {
+      "host": "env.DATABASE_HOST",
+      "port": "5432",
+      "user": "env.DATABASE_USER",
+      "password": "env.DATABASE_PASS",
+      "db_name": "env.DATABASE_NAME",
+      "ssl_mode": "disable"
+    }
+  },
+  "mcp": {
+    "client_configs": [
+      {
+        "name": "gateway",
+        "connection_type": "http",
+        "connection_string": "http://gateway:8811/mcp",
+        "auth_type": "headers",
+        "headers": {
+          "Authorization": "env.DOCKER_MCP_GATEWAY_AUTH_TOKEN"
+        },
+        "is_code_mode_client": true,
+        "tools_to_execute": [
+          "mcp-find",
+          "mcp-exec"
+        ]
+      }
+    ]
+  }
+}

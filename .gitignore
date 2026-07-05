@@ -1,0 +1,15 @@
+# Jetbrains
+/.idea/
+/.junie/
+
+# Keep secrets out
+/*.env
+
+# Keep db state out
+/var/**
+
+/opencode.jsonc
+
+
+# always last
+!.gitkeep
