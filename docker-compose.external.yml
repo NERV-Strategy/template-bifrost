@@ -2,13 +2,8 @@
 services:
   host-proxy:
     image: nginx:latest
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     networks:
       - bifrost-global
     volumes:
-      - ./config/host-proxy.conf:/etc/nginx/nginx.conf:ro
-
-networks:
-  bifrost-global:
-    external: true
+      - ./config/host-proxy.conf:/etc/nginx/templates/default.conf.template:ro # overwrite the default
+      - ./host-proxy/entrypoint/01-get-gateway.envsh:/docker-entrypoint.d/01-get-gateway.envsh:ro

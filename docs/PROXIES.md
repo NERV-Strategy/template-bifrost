@@ -10,10 +10,11 @@ This allows Bifrost to access an MCP server on the host machine at a specific po
 
 ##### SystemD
 
-Create an external network and configure sysctl on the network.
+Create network and configure sysctl on the network.
 
 ```shell
-./bin/setup_systemd_external_network.sh
+docker compose -f docker-compose.yml -f docker-compose.external.yml create
+./bin/add_systemd_host_routing.sh
 ```
 
 #### 2. Add Routes for Port Forward
@@ -31,7 +32,8 @@ Create an external network and configure sysctl on the network.
 For each port the nginx config `config/host-proxy.conf` needs an additional upstream or it wont be able to proxy to that port.
 
 ```nginx
-upstream mcp_64342 { server host.docker.internal:64342; }
+# ${GATEWAY_IP} is injected at container start via entrypoint
+upstream mcp_64342 { server ${GATEWAY_IP}:64342; }
 ```
 
 ### Windows
