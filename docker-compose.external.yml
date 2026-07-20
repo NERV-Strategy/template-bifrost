@@ -7,3 +7,7 @@ services:
     volumes:
       - ./config/host-proxy.conf:/etc/nginx/templates/default.conf.template:ro # overwrite the default
       - ./host-proxy/entrypoint/01-get-gateway.envsh:/docker-entrypoint.d/01-get-gateway.envsh:ro
+
+networks:
+  bifrost-global:
+    external: true
