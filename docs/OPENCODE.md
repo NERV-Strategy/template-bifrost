@@ -12,27 +12,21 @@ By default, the most common way to connect to bifrost would be the OpenAI-compat
 {
   "$schema": "https://opencode.ai/config.json",
   "provider": {
-    "openrouter": {
-      // OpenRouter is OpenAI-compatible by default, so nothing special needed here.
+    "openai": {
+      "name": "Bifrost",
       "options": {
-        "baseURL": "http://localhost:8080/v1",
-        // we override the url
-        "apiKey": "{file:./.opencode.env}"
-      }
-    },
-    "bifrost": {
-      // This is the Custom OpenAI-compatible API connector
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "Bifrost LLM Gateway",
-      "options": {
-        "baseURL": "http://localhost:8080/v1",
-        // we override the url
+        "baseURL": "http://localhost:8080/openai",
         "apiKey": "{file:./.opencode.env}"
       }
     }
   }
 }
 ```
+
+**Note: OpenRouter**
+Although you can connect to Bifrost usings its built-in `"openrouter"` provider, it will break.
+E.g. The native OpenCode provider for OpenRouter uses native anthropic endpoints and will fail for all anthropic models.
+Alternatively you can limit models using the `models` key for each provider, but this becomes an admin burden.
 
 ### Native Integrations
 
@@ -46,9 +40,16 @@ For the Gemini API the config would look like this
   "provider": {
     "google": {
       // Note: This is the Gemini API connector
+      "name": "Bifrost-Gemini",
       "options": {
         "baseURL": "http://localhost:8080/genai/v1beta",
-        // we override the url
+        "apiKey": "{file:./.opencode.env}"
+      }
+    },
+    "anthropic": {
+      "name": "Bifrost-Anthropic",
+      "options": {
+        "baseURL": "http://localhost:8080/anthropic/v1",
         "apiKey": "{file:./.opencode.env}"
       }
     }
@@ -56,6 +57,6 @@ For the Gemini API the config would look like this
 }
 ```
 
-See `https://docs.getbifrost.ai/api-reference/genai-integration/generate-content-gemini-format` for more info.
+See [Bifrost OpenCode Setup](https://docs.getbifrost.ai/cli-agents/opencode) for more info.
 
-Other providers (like Anthropic) are supported.
+Other providers are supported.
